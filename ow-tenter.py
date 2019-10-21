@@ -29,7 +29,7 @@ class Owtenter:
         else:
             print(
                 "Unable to read config.ini, please verify that it resides "
-                + "in the same folder as ow.py."
+                + "in the same folder as ow-tenter.py."
             )
             sys.exit(1)
 
@@ -174,7 +174,7 @@ class Owtenter:
         for key, presumed_numeral in list(ow_readings.items()):
             try:
                 float(presumed_numeral)
-            except Exception:
+            except ValueError:
                 del ow_readings[key]
 
         try:
