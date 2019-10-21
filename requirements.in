@@ -1,0 +1,4 @@
+pendulum
+requests
+pyownet
+psycopg2
