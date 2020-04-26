@@ -43,7 +43,7 @@ class Owtenter:
                 sys.exit(1)
         else:
             try:
-                self.save(self.read_ow())
+                self.save(*self.read_ow())
             except TypeError as e:
                 print("Encountered a problem: " + str(e) + " Ow-tenter is exiting.")
                 sys.exit(1)
