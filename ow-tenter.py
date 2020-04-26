@@ -33,18 +33,19 @@ class Owtenter:
             )
             sys.exit(1)
 
+    # main
     def run(self):
         if (self.config.has_option("weather", "OpenWeatherMapAPICall")):
             try:
                 self.save(*self.read_ow(), self.weather())
-            except TypeError:
-                print("Something horrible has happened and the program is therefore exiting.")
+            except TypeError as e:
+                print("Encountered a problem: " + str(e) + " Ow-tenter is exiting.")
                 sys.exit(1)
         else:
             try:
                 self.save(self.read_ow())
-            except TypeError:
-                print("Untoward! Check prior error messages. Ow-tenter is exiting.")
+            except TypeError as e:
+                print("Encountered a problem: " + str(e) + " Ow-tenter is exiting.")
                 sys.exit(1)
 
     def read_ow(self):
