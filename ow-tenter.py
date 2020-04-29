@@ -246,7 +246,7 @@ class Owtenter:
         )
         s.ehlo()
         s.starttls()
-        s.login(self.config["mail"]["MailAddress"],
+        s.login(self.config["mail"]["FromMailAddress"],
                 self.config["mail"]["Pass"])
         s.send_message(email)
         s.quit()
