@@ -222,11 +222,15 @@ class Owtenter:
         warning_string = ""
 
         for sensor, reading in warnings.items():
-            if ("temperature" in sensor):
-                warning_string += str(sensor) + ": " + \
-                    str(reading) + temp_scale + "\n"
-            elif ("humidity" in sensor):
-                warning_string += str(sensor) + ": " + str(reading) + "%\n"
+            if (sensor.endswith("_temperature")):
+                sensor = sensor.rsplit("_", 1)[0]
+                warning_string += "The sensor '{}' reports a temperature of {} {}\
+                    \n".format(sensor, reading, temp_scale)
+
+            elif (sensor.endswith("_humidity")):
+                sensor = sensor.rsplit("_", 2)[0]
+                warning_string += "The sensor '{}' reports a relative humidity of {}%\
+                    \n".format(sensor, reading)
 
         email = EmailMessage()
 
