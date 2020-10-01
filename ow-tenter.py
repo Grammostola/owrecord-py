@@ -9,6 +9,7 @@ from psycopg2 import sql
 import requests
 import pyownet
 import smtplib
+import socket
 from email.message import EmailMessage
 from email.headerregistry import Address
 
@@ -49,11 +50,15 @@ class Owtenter:
                 sys.exit(1)
 
     def read_ow(self):
-        owproxy = pyownet.protocol.proxy(
-            host=self.config["owserver"]["Host"],
-            port=self.config["owserver"]["Port"],
-            persistent=False,
-        )
+        try:
+            owproxy = pyownet.protocol.proxy(
+                host=self.config["owserver"]["Host"],
+                port=self.config["owserver"]["Port"],
+                persistent=False,
+            )
+        except pyownet.protocol.ConnError as e:
+            print("An error occurred while trying to establish a connection to the ow network: {}\nThe ow error occurred at: {}\n".format(e, pendulum.now().to_datetime_string()))
+            sys.exit(1)
 
         # Read ow sensors section of config and save as dict
         # id as key and path as value
@@ -212,7 +217,7 @@ class Owtenter:
             connection.close()
 
     def _email(self, warnings):
-        # Email warning with sensor ids and values past thresholds
+        # (try to) email warning with sensor ids and values past thresholds
 
         if (self.config.has_option("international", "Temperature_scale_symbol")):
             temp_scale = self.config["international"]["Temperature_scale_symbol"]
@@ -245,15 +250,22 @@ class Owtenter:
         email["Subject"] = self.config["mail"]["Subject"]
         email.set_content(warning_string)
 
-        s = smtplib.SMTP(
-            host=self.config["mail"]["Host"], port=self.config["mail"]["Port"]
-        )
-        s.ehlo()
-        s.starttls()
-        s.login(self.config["mail"]["FromMailAddress"],
-                self.config["mail"]["Pass"])
-        s.send_message(email)
-        s.quit()
+        try:
+            s = smtplib.SMTP(host=self.config["mail"]["Host"], port=self.config["mail"]["Port"])
+            s.ehlo()
+            s.starttls()
+            s.login(self.config["mail"]["FromMailAddress"],
+                    self.config["mail"]["Pass"])
+            s.send_message(email)
+            s.quit()
+        except socket.error as e:        
+            print("An error occurred while attempting to email a sensor alert: {}\nThe email error occurred at: {}\n".format(e, pendulum.now().to_datetime_string()))
+            return
+        except Exception as e:
+            print("Another error of type: ", e.__class__, "occurred while attempting to email a sensor alert.")
+            return
+
+
 
 
 if (__name__ == "__main__"):
