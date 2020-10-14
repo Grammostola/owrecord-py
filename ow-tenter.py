@@ -128,8 +128,6 @@ class Owtenter:
                     print("One threshold check failed due to a threshold or sensor reading value format error.")
 
         if (warnings):
-            print("Threshold crossed, attempting to email")
-            print(warnings)
             self._email(warnings)
 
     def weather(self):
