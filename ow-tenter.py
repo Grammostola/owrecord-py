@@ -221,12 +221,12 @@ class Owtenter:
             if (sensor.endswith("_temperature")):
                 sensor = sensor.rsplit("_", 1)[0]
                 warning_string += ("The sensor '{}' reports a temperature of {} {}\n"
-                "".format(sensor, reading, temp_scale))
+                                   "".format(sensor, reading, temp_scale))
 
             elif (sensor.endswith("_humidity")):
                 sensor = sensor.rsplit("_", 2)[0]
                 warning_string += ("The sensor '{}' reports a relative humidity of {}%\n"
-                "".format(sensor, reading))
+                                   "".format(sensor, reading))
 
         email = EmailMessage()
 
@@ -249,7 +249,7 @@ class Owtenter:
                     self.config["mail"]["Pass"])
             s.send_message(email)
             s.quit()
-        except socket.error as e:        
+        except socket.error as e:
             print(
                 "An error occurred while attempting to email a sensor alert: {}\n"
                 "The email error occurred at: {}\n".format(e, pendulum.now().to_datetime_string()))
@@ -257,8 +257,6 @@ class Owtenter:
         except Exception as e:
             print("Another error of type: ", e.__class__, "occurred while attempting to email a sensor alert.")
             return
-
-
 
 
 if (__name__ == "__main__"):
