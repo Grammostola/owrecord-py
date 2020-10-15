@@ -30,8 +30,7 @@ class Owtenter:
         else:
             print(
                 "Unable to read config.ini, please verify that it resides "
-                + "in the same folder as ow-tenter.py."
-            )
+                "in the same folder as ow-tenter.py.")
             sys.exit(1)
 
     # main
@@ -40,13 +39,13 @@ class Owtenter:
             try:
                 self.save(*self.read_ow(), self.weather())
             except TypeError as e:
-                print("Encountered a problem: " + str(e) + " Ow-tenter is exiting.")
+                print("Encountered a problem: {}, Ow-tenter is exiting.".format(e))
                 sys.exit(1)
         else:
             try:
                 self.save(*self.read_ow())
             except TypeError as e:
-                print("Encountered a problem: " + str(e) + " Ow-tenter is exiting.")
+                print("Encountered a problem: {}, Ow-tenter is exiting.".format(e))
                 sys.exit(1)
 
     def read_ow(self):
@@ -57,7 +56,9 @@ class Owtenter:
                 persistent=False,
             )
         except pyownet.protocol.ConnError as e:
-            print("An error occurred while trying to establish a connection to the ow network: {}\nThe ow error occurred at: {}\n".format(e, pendulum.now().to_datetime_string()))
+            print(
+                "An error occurred while trying to establish a connection to the ow network: {}\n"
+                "The ow error occurred at: {}\n".format(e, pendulum.now().to_datetime_string()))
             sys.exit(1)
 
         # Read ow sensors section of config and save as dict
@@ -76,8 +77,7 @@ class Owtenter:
                         )
                     )
                 except pyownet.protocol.OwnetError as e:
-                    print("Sensor unreachable: " + str(e) + ", the date is: "
-                          + pendulum.now().to_datetime_string())
+                    print("Sensor unreachable: {}, the date is: {}\n".format(e, pendulum.now().to_datetime_string()))
 
             elif (key.endswith("_temperature")):
                 try:
@@ -90,8 +90,7 @@ class Owtenter:
                         1,
                     )
                 except pyownet.protocol.OwnetError as e:
-                    print("Sensor unreachable: " + str(e) + ", the date is: "
-                          + pendulum.now().to_datetime_string())
+                    print("Sensor unreachable: {}, the date is: {}.\n".format(e, pendulum.now().to_datetime_string()))
 
         # Don't continue if no sensors were read
         if (not sensors_dict):
@@ -141,10 +140,8 @@ class Owtenter:
                     return json.dumps({"issue": "openweathermap service availability issue"})
                 else:
                     print(
-                        "First Openweathermap api call attempt failed, making one more attempt in nine seconds. The date is: "
-                        + pendulum.now().to_datetime_string()
-                        + "\n"
-                    )
+                        "First Openweathermap api call attempt failed, making one more attempt in nine seconds."
+                        " The date is: {}\n".format(pendulum.now().to_datetime_string()))
                     sleep(9)
             else:
                 break  # response http status is 200 and the for loop breaks
@@ -161,11 +158,7 @@ class Owtenter:
             custom_weather_response["clouds"] = response["clouds"]["all"]
             custom_weather_response["windspeed"] = response["wind"]["speed"]
         except KeyError:
-            print(
-                "Weather's schema has changed. Local datetime: "
-                + pendulum.now().to_datetime_string()
-                + "\n"
-            )
+            print("Weather's schema has changed. Local datetime: {}\n".format(pendulum.now().to_datetime_string()))
             return json.dumps({"issue": "openweathermap schema change"})
 
         return json.dumps(custom_weather_response)
@@ -227,13 +220,13 @@ class Owtenter:
         for sensor, reading in warnings.items():
             if (sensor.endswith("_temperature")):
                 sensor = sensor.rsplit("_", 1)[0]
-                warning_string += "The sensor '{}' reports a temperature of {} {}\
-                    \n".format(sensor, reading, temp_scale)
+                warning_string += ("The sensor '{}' reports a temperature of {} {}\n"
+                "".format(sensor, reading, temp_scale))
 
             elif (sensor.endswith("_humidity")):
                 sensor = sensor.rsplit("_", 2)[0]
-                warning_string += "The sensor '{}' reports a relative humidity of {}%\
-                    \n".format(sensor, reading)
+                warning_string += ("The sensor '{}' reports a relative humidity of {}%\n"
+                "".format(sensor, reading))
 
         email = EmailMessage()
 
@@ -257,7 +250,9 @@ class Owtenter:
             s.send_message(email)
             s.quit()
         except socket.error as e:        
-            print("An error occurred while attempting to email a sensor alert: {}\nThe email error occurred at: {}\n".format(e, pendulum.now().to_datetime_string()))
+            print(
+                "An error occurred while attempting to email a sensor alert: {}\n"
+                "The email error occurred at: {}\n".format(e, pendulum.now().to_datetime_string()))
             return
         except Exception as e:
             print("Another error of type: ", e.__class__, "occurred while attempting to email a sensor alert.")
