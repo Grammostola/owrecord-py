@@ -11,7 +11,6 @@ from pathlib import Path
 class Owrecorder:
     def __init__(self):
         self.config = ConfigParser()
-        print(Path(__file__).parent.absolute())
         if not self.config.read(f'{Path( __file__ ).parent.joinpath("config.ini")}'):
             raise RuntimeError("config.ini not found")
 
