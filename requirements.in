@@ -1,4 +1,2 @@
-pendulum
-requests
 pyownet
-psycopg2
+psycopg

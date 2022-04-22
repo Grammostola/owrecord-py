@@ -1,56 +1,64 @@
-# Ow-tenter
-Is a Python 3 script to read any number of Onewire temperature and humidity sensors and save as a row in a postgresql table. Threshold values can be defined for email alerts and weather data can be fetched via openweathermap and saved as well.
+# owrecord-py
+Is a Python 3 script to read any number of Onewire temperature and humidity sensors and save as a row in a postgresql table. This updated (April 2022) version is smaller in scope than the original and features less dependencies. 
 
+Concurrent sensor readings? Pyownet's documentation says 
+> All methods of a pyownet proxy object are blocking
+
+and the sister script (nodejs 'Owrecord') which works with a callback based Onewire library does not appear to be any faster than this version with ~15m of rj12, two splitters and three circuit boards with two, two and one sensor and no additional power; at best responses from all sensors takes ~2,7s with both scripts, sometimes they both take several seconds longer. (I briefly tested an async aiohttp version that attempted to read the sensors concurrently via the owhttpd webpage, the owhttp service consistently crashed. The owserver is who to talk to for errands like these and it'll answer as quickly as it deems appropriate I guess :) )
+ 
 ## Getting Started
 
 ### Prerequisites
-An ow-server(https://www.owfs.org/)  needs be accessible for sensor values to read.
+An *ow-server* (https://www.owfs.org/)  needs be accessible for sensor values to read.
 
-An Openweathermap (https://openweathermap.org/api) API key is optional.
 
-A PostgreSQL(9.6 tested) database table of this format is needed to save values:
+A *PostgreSQL*(13 tested) database table of a similar format is needed to save values:
+
+```sql
+create table ow_2022(
+    reading_nr bigint generated always as identity primary key,
+    timestamp timestamptz,
+    southside_rel_humidity numeric(3,0),
+    southside_temperature numeric(3,1),
+    greenhouse_rel_humidity numeric(3,0),
+    greenhouse_temperature numeric(3,1),
+    balcony_rel_humidity numeric(3,0),
+    balcony_temperature numeric(3,1));
 ```
-create table ow_tenter_test(reading_nr serial PRIMARY KEY, timestamp timestamptz, Larger_tent_relative_humidity numeric(3,0), Larger_tent_temperature numeric(3,1), Littler_tent_relative_humidity numeric(3,0), Littler_tent_temperature numeric(3,1), Greenhouse_relative_humidity numeric(3,0), Greenhouse_temperature numeric(3,1), weather jsonb);
-```
-Reading_nr is optional, as is weather. There's one column per sensor and the names need to match sensor names in config.ini. 
+The primary key column can be anything suitable (which doesn't ideally include the timestamp column) and the _temperature and _humidity columns need to match sensor designations (and probably function), see below. 
 
-There's a timezone aware timestamp column as ow-tenter will include a UTC timestamp to mark the time of the readings. UTC avoids any ambiguity about the locale/timezone ow-tenter runs in. 
+*Python 3.9+* is required for the zoneinfo module (built-in support for timezones)
 
 ### Installing
-After cloning this repository, in a venv or not, to install dependencies:
-```
+After cloning this repository, init a venv (suggestion) and install dependencies:
+```shell
+python -m venv .venv
+source .venv/bin/activate
+
 pip install -r requirements.txt
-
 ```
-Edit **config.ini** with your environment information.
+Edit **config.ini** with your environment information 
 
+The script can be tested for ability to read the Onewire network by editing owrecorder like so:
+```python
+owrecord = Owrecorder()
+print(owrecord.read_owsensors())
+```
+which should print the readings that are meant to go into the database.
 
-Therafter the script can be run:
+To run the script as it comes in order to read sensors and insert a row in the designated db:
 ```
-python3 ow-tenter.py
+python owrecorder.py
 ```
-or
-```
-python ow-tenter.py
-```
-if that invokes Python3. If there's no visible output then it has probably run successfully : ) 
-You can check your db table.
-
-
+There's no notification on a successful run.
 
 
 ## Deployment
-
-The script makes the most sense running on a schedule in order to save a time series of data.
-Cron or systemd or Windows scheduler can be employed. I found https://jeetblogs.org/post/scheduling-jobs-with-systemd/ useful for Raspbian.
-
-
-Something to visualize the collected data might be constructed, I've employed a tiny c3 js page querying the database via a small flask api running via mod_wsgi in an apache2 instance.
+The script makes the most sense running on a schedule in order to save Onewire sensor readings over time.
 
 
 ## Code style
-
-The code mostly follows pep8 except 'line too long' and 'line break before binary operator'. I typically write on a standard desktop wide screen and think that line breaks before binary operators looks nice : )
+Black ✨ 🍰 ✨
 
 ## Contributing
 Do create an issue for a feature request, bug report, comment or preceding a PR.
@@ -58,8 +66,3 @@ Do create an issue for a feature request, bug report, comment or preceding a PR.
 ## License
 See [LICENSE](LICENSE)
 
-## Credits
-Two stackoverflow threads with working answers on how to create a dynamic insert into(any number of values/columns) with psycopg2:
-
-https://stackoverflow.com/questions/55814077/psycopg2-dynamic-table-columns-and-values 
-https://stackoverflow.com/questions/41999354/inserting-rows-into-db-from-a-list-of-tuples-using-cursor-mogrify-gives-error/41999884#41999884
