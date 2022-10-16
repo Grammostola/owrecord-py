@@ -1,17 +1,20 @@
 from configparser import ConfigParser
-import time
-import pyownet
+from pathlib import Path
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import time
+import pyownet
+
 import psycopg
 from psycopg import sql
-from pathlib import Path
 
 
 class Owrecorder:
     def __init__(self):
         self.config = ConfigParser()
-        if not self.config.read(f'{Path( __file__ ).parent.joinpath("config.ini")}'):
+        if not self.config.read(
+            f'{Path( __file__ ).parent.joinpath("config.ini")}'
+        ):
             raise RuntimeError("config.ini not found")
 
     def read_owsensors(self) -> dict:  # {sensor_name : read_value}
@@ -21,10 +24,10 @@ class Owrecorder:
                 port=self.config["owserver"]["Port"],
                 persistent=False,  # if a sensor is tempor. unavail. when the proxy is created with persistence it seems to remain so
             )
-        except pyownet.protocol.ConnError as e:
+        except pyownet.protocol.ConnError as error:
             raise RuntimeError(
-                f"there was a problem connecting to the specified owserver: {e.args}\n"
-            )
+                f"there was a problem connecting to the specified owserver: {error.args}\n"
+            ) from error
 
         sensors = self.config.items("owsensors")
         retry_seconds = int(self.config.items("owretry")[0][1])
@@ -41,9 +44,9 @@ class Owrecorder:
             reading = None
             try:
                 reading = owproxy.read(sensor[1])
-            except pyownet.protocol.OwnetError as e:
+            except pyownet.protocol.OwnetError as error:
                 print(
-                    f"{datetime.now()}: failed to read {sensor[0]}: {e.args}"
+                    f"{datetime.now()}: failed to read {sensor[0]}: {error.args}"
                 )  # always indicate when sensor failed to be read
             return reading
 
@@ -60,8 +63,8 @@ class Owrecorder:
                 iterate_sensor_reads(sensors)
                 if not failures:
                     break
-                else:
-                    time.sleep(retry_seconds)
+
+                time.sleep(retry_seconds)
 
             elif (
                 times == 1
