@@ -45,14 +45,15 @@ class Owrecorder:
                 print(
                     f"{datetime.now()}: failed to read {sensor[0]}: {e.args}"
                 )  # always indicate when sensor failed to be read
-                failures.append((sensor[0], sensor[1]))
             return reading
 
-        def iterate_sensor_reads(sensors):
+        def iterate_sensor_reads(sensors, are_failures=False):
             for sensor in sensors:
                 reading = read_sensor(sensor)
                 if reading is not None:
                     format_reading(sensor, reading)
+                if reading is None and not are_failures:
+                    failures.append((sensor[0], sensor[1]))
 
         for times in range(2):
             if times == 0:
@@ -65,7 +66,7 @@ class Owrecorder:
             elif (
                 times == 1
             ):  # will only happen if failure to read a sensor has happened
-                iterate_sensor_reads(failures)
+                iterate_sensor_reads(failures, True)
 
         return [
             readings,
