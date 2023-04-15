@@ -1,3 +1,4 @@
+#pylint: disable=E1129
 import configparser
 from pathlib import Path
 from datetime import datetime
