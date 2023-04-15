@@ -1,4 +1,4 @@
-from configparser import ConfigParser
+import configparser
 from pathlib import Path
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -11,7 +11,7 @@ from psycopg import sql
 
 class Owrecorder:
     def __init__(self):
-        self.config = ConfigParser()
+        self.config = configparser.ConfigParser()
         if not self.config.read(
             f'{Path( __file__ ).parent.joinpath("config.ini")}'
         ):
@@ -30,7 +30,10 @@ class Owrecorder:
             ) from error
 
         sensors = self.config.items("owsensors")
-        retry_seconds = int(self.config.items("owretry")[0][1])
+        try:
+            retry_seconds = int(self.config.items("owretry")[0][1])
+        except (IndexError, configparser.NoSectionError):
+            retry_seconds = 3
         readings = {}
         failures = []
 
