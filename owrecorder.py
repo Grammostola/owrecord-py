@@ -105,7 +105,6 @@ class Owrecorder:
                     values=sql.SQL(", ").join(map(sql.Placeholder, columns)),
                 )
                 cur.execute(insert_sql, mapped_values)
-                conn.commit()
 
 
 if __name__ == "__main__":
